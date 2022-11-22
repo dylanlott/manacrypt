@@ -15,7 +15,8 @@ contract ManaBank {
         _;
     } 
 
-    // deposit a non-zero amount into the bank
+    // deposit a non-zero amount into the bank. it returns the 
+    // user's balance in the bank after the deposit.
     function deposit() public payable returns (uint256) {
         // increment balance by amount sent to contract
         require(msg.value != 0);
@@ -24,7 +25,17 @@ contract ManaBank {
     }
 
     // balance returns the sender's balance in the ManaBank 
-    function balance() public returns (uint256) {
+    function balance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
+
+    // withdraw checks that the amount is a valid withdrawal amount 
+    // and then transfers it to the account and returns the sender's 
+    // remaining balance in the bank.
+    function withdraw(uint256 amount) public returns (uint256) {
+        require(amount <= balances[msg.sender], "insufficient funds");
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
         return balances[msg.sender];
     }
 }

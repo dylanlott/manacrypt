@@ -13,6 +13,7 @@ contract ManaBankSetup is ManaBank, Test {
     address internal alice;
     address internal bob;
 
+    // setup will make 2 test users with 100 ether
     function setUp() public virtual {
         utils = new Utils();
         users = utils.createUsers(2);
@@ -43,5 +44,38 @@ contract WhenDepositingTokens is ManaBankSetup {
         vm.prank(alice);
         assertEq(this.balance(), 1);
     }
+
+    function testDepositDecimal() public {
+        uint256 amount  = transferTokenToBank(alice, 1 ether/2);
+        assertEq(amount, 1 ether/2, "failed to deposit correct amount");
+        vm.prank(alice);
+        assertEq(this.balance(), 1 ether/2, "failed to deposit correct amount");
+    }
 }
 
+
+contract WhenWithdrawingTokens is ManaBankSetup {
+    function setUp() public virtual override {
+        ManaBankSetup.setUp();
+        vm.prank(alice);
+        this.deposit{value: 50}();
+        vm.prank(bob);
+        this.deposit{value: 25}();
+        console.log("When withdrawing tokens from ManaBank");
+    }
+
+    function withdrawFromBank(
+        address withdrawer,
+        uint256 amount
+    ) public returns (uint256) {
+        vm.prank(withdrawer);
+        return this.withdraw(amount);
+    }
+
+    function testWithdrawHalf() public {
+        vm.prank(alice);
+        uint256 full = this.balance();
+        uint256 remaining = withdrawFromBank(alice, full / 2);
+        assertEq(remaining, 25);
+    }
+}
